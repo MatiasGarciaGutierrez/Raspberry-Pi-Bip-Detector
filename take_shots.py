@@ -43,7 +43,7 @@ class FolderAdministrator():
         date = str(self.now.day)+"-"+str(self.now.month)+"-"+str(self.now.year)
         path = self.samples_path+"/"+date
         if not os.path.isdir(path):
-            os.mkdir(path, 0777)  
+            os.mkdir(path, 777)  
         return path
 
     def create_time_folder(self):
