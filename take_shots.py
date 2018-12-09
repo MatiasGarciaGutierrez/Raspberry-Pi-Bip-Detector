@@ -8,13 +8,6 @@ import io
 import datetime
 import os
 
-#Global variables of sounds parameters
-device = 0
-duration = 0.05
-fs = 44100
-precision = 0.02
-
-
 
 class FolderAdministrator():
     """This class is in charge of verify the existence and the creation of the folders use to store the images
@@ -24,11 +17,11 @@ class FolderAdministrator():
             now (datetime): The actual time set on the system.
     """
 
-    def __init__(self, samples_path = "./samples"):
+    def __init__(self, samples_path = "samples"):
         self.samples_path = samples_path
         self.now = None
         if not os.path.isdir(samples_path):
-            os.mkdir(samples_path, 777)
+            os.mkdir(samples_path)
 
     def create_day_folder(self):
         """Create a folder for the day, if already exist does nothing.
@@ -43,7 +36,7 @@ class FolderAdministrator():
         date = str(self.now.day)+"-"+str(self.now.month)+"-"+str(self.now.year)
         path = self.samples_path+"/"+date
         if not os.path.isdir(path):
-            os.mkdir(path, 777)  
+            os.mkdir(path)  
         return path
 
     def create_time_folder(self):
@@ -56,7 +49,7 @@ class FolderAdministrator():
                     Relative path to the time stamp container of the images.
         """
         self.update_date()
-        date_path = create_day_folder(self.now)
+        date_path = self.create_day_folder()
         time = str(self.now.hour)+"-"+str(self.now.minute)+"-"+str(self.now.second)
         path = date_path+"/"+time
         os.mkdir(path)
@@ -76,7 +69,7 @@ class PhotoAdministrator():
             samples_path (str): Directory where the samples are storage
             folder_admin (FolderAdministrator): In charge of creating and organizing the time stamp folders.
     """
-    def __init__(self, samples_path = "./samples"):
+    def __init__(self, samples_path = "samples"):
         self.camera = self.create_camera()
         self.samples_path = samples_path
         self.folder_admin = FolderAdministrator()
@@ -134,21 +127,22 @@ class PhotoAdministrator():
             Returns:
                 Nothing
         """
-        images_data = np.load(self.samples_path+"/"+folder_name+"/"+images+".npy")
+        images_data = np.load(self.samples_path+"/"+folder_name+"/"+"images"+".npy")
         count = 1
         for image_data in images_data:
             image_data.seek(0)
             byte_image = Image.open(image_data)
-            filename = root_folder+"/"+folder_name+"/"+"image"+str(count)+".jpg"
+            filename = self.samples_path+"/"+folder_name+"/"+"image"+str(count)+".jpg"
             byte_image.save(filename, "JPEG")
+            count = count + 1
 
-    def create_all_jpg():
+    def create_all_jpg(self):
         """
         """
         for date_folder in os.listdir(self.samples_path):
             for time_folder in os.listdir(self.samples_path+"/"+date_folder):
                 if(len(os.listdir(self.samples_path+"/"+date_folder+"/"+time_folder)) == 1):
-                    create_jpg(date_folder+"/"+time_folder)
+                    self.create_jpg(date_folder+"/"+time_folder)
 
 
 
@@ -172,17 +166,21 @@ class FrequencyDetector():
             f_max_index = np.argmax(abs(fourier[:half_size]))
             freqs = np.fft.fftfreq(len(fourier))
             f_detected = freqs[f_max_index]*self.sample_rate
-            if (f_detected > 999):
+            if (abs(f_detected - frequency) < 50):
                 print(f_detected)
                 print("detectado")
-                self.photo_administrator.photo_burst(camera)            
+                self.photo_administrator.photo_burst()      
+        self.photo_administrator.create_all_jpg()      
 
 
 def on_press(key):
     global break_program
+    print (key)
     if key == keyboard.Key.esc:
+        print ('end pressed')
         break_program = True
-        return 
+        print(break_program)
+        return False
 
 
 break_program = False
@@ -190,8 +188,9 @@ if __name__ == "__main__":
     with keyboard.Listener(on_press=on_press) as listener:
         frequency_detector = FrequencyDetector(0.05, 44100, 2)
         while (not break_program):
-            frequency_detector.detect(1000)
+            frequency_detector.detect(1060)
         listener.join()
+    
 
 
 
