@@ -92,7 +92,7 @@ class PhotoAdministrator():
                     framerate (int): Number of images gets by the image sensor per second (Maximun 90 fps).
                     rotation (int): Rotation of the images (0 to 360). 
         """
-        camera = PiCamera()
+        camera = picamera.PiCamera()
         camera.resolution = resolution
         camera.framerate = framerate
         camera.rotation = rotation
