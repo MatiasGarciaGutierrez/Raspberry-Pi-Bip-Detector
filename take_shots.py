@@ -2,8 +2,8 @@ import sounddevice as sd
 import numpy as np
 import time
 from pynput import keyboard
-#import picamera
-#from PIL import Image
+import picamera
+from PIL import Image
 import io
 import datetime
 import os
