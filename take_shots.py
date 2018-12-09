@@ -28,7 +28,7 @@ class FolderAdministrator():
         self.samples_path = samples_path
         self.now = None
         if not os.path.isdir(samples_path):
-            os.mkdir(samples_path, 0777)
+            os.mkdir(samples_path, 777)
 
     def create_day_folder(self):
         """Create a folder for the day, if already exist does nothing.
