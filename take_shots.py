@@ -1,6 +1,7 @@
 import sounddevice as sd
 import numpy as np
 import time
+from pynput import keyboard
 #import picamera
 #from PIL import Image
 import io
@@ -123,8 +124,15 @@ class PhotoAdministrator():
         np.save(path+"/"+"images", outputs)
 
 
-    def create_jpg(folder_name):
-        """
+    def create_jpg(self, folder_name):
+        """Search for a folder and then creates the jpeg images saved in images.npy. 
+           Creates all n the images store on the buffers inside the .npy, therefore, creates images with the name imagex.jpg with x between [1, n] 
+
+            Args:
+                folder_name(str): name of the folder relative to the samples path
+
+            Returns:
+                Nothing
         """
         images_data = np.load(self.samples_path+"/"+folder_name+"/"+images+".npy")
         count = 1
@@ -134,34 +142,62 @@ class PhotoAdministrator():
             filename = root_folder+"/"+folder_name+"/"+"image"+str(count)+".jpg"
             byte_image.save(filename, "JPEG")
 
+    def create_all_jpg():
+        """
+        """
+        for date_folder in os.listdir(self.samples_path):
+            for time_folder in os.listdir(self.samples_path+"/"+date_folder):
+                if(len(os.listdir(self.samples_path+"/"+date_folder+"/"+time_folder)) == 1):
+                    create_jpg(date_folder+"/"+time_folder)
 
 
-def record(duration, sample_rate, device, camera, channels = 1):
-    while True:
-        my_recording = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=channels, device=2)
-        time.sleep(1.1*duration)
-        fourier = np.fft.fft(my_recording.ravel())
-        half_size = int(fourier.size/2)
-        f_max_index = np.argmax(abs(fourier[:half_size]))
-        freqs = np.fft.fftfreq(len(fourier))
-        f_detected = freqs[f_max_index]*sample_rate
-        if (f_detected > 999):
-            print(f_detected)
-            print("detectado")
-            photo_burst(camera)
 
-if __name__ == "__main__":
-    camera = create_camera()
-    record(0.05, 44100, 2, camera)
+class FrequencyDetector():
+    """
+    """
 
-from pynput import keyboard
-import time
+    def __init__(self, duration, sample_rate, device, channels = 1):
+        self.duration = duration
+        self.sample_rate = sample_rate
+        self.device = device
+        self.channels = channels
+        self.photo_administrator = PhotoAdministrator()
+
+    def detect(self, frequency):
+        while is not break_program:
+            my_recording = sd.rec(int(self.duration * self.sample_rate), samplerate=self.sample_rate, channels=self.channels, device=self.device)
+            time.sleep(1.1*self.duration)
+            fourier = np.fft.fft(my_recording.ravel())
+            half_size = int(fourier.size/2)
+            f_max_index = np.argmax(abs(fourier[:half_size]))
+            freqs = np.fft.fftfreq(len(fourier))
+            f_detected = freqs[f_max_index]*self.sample_rate
+            if (f_detected > 999):
+                print(f_detected)
+                print("detectado")
+                self.photo_administrator.photo_burst(camera)            
+
+
+def on_press(key):
+    global break_program
+    if key == keyboard.Key.esc:
+        break_program = True
+        return 
+
 
 break_program = False
+if __name__ == "__main__":
+    with keyboard.Listener(on_press=on_press) as listener:
+        frequency_detector = FrequencyDetector(0.05, 44100, 2)
+        while (is not break_program):
+            frequency_detector.detect(1000)
+        listener.join()
 
 
-with keyboard.Listener(on_press=on_press) as listener:
-    while break_program == False:
-        print ('program running')
-        time.sleep(5)
-    listener.join()
+
+
+
+
+
+
+
