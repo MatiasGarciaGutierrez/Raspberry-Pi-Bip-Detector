@@ -137,17 +137,26 @@ class PhotoAdministrator():
             count = count + 1
 
     def create_all_jpg(self):
-        """
+        """Creates all the jpg files if they are not already created.
         """
         for date_folder in os.listdir(self.samples_path):
             for time_folder in os.listdir(self.samples_path+"/"+date_folder):
-                if(len(os.listdir(self.samples_path+"/"+date_folder+"/"+time_folder)) == 1):
+                if(len(os.listdir(self.samples_path+"/"+date_folder+"/"+time_folder)) == 1): #Condition if in the folder are more than 1 files.
                     self.create_jpg(date_folder+"/"+time_folder)
 
 
 
 class FrequencyDetector():
-    """
+    """This class manages the frequency detection. Takes samples of sounds in short periods of time and then calculates the fourier transform of it
+       Once it has the fourier transforms look for the highest value of it (i.e the principal harmonic) and compare it with the search frequency.
+
+       Attributes:
+            duration (float): Second of recording in each iteration. Actual best value i try is 0.05 second (didn't recognize all the bips)
+            sample_rate (int): Number of samples take by the microphone in 1 second, also gives the maximun frequency to be detected (nyquist theorem).
+            device (int): Number of the device to be used (in computers is default by cero, on raspberry pi usb microphone is 2)
+            channels (int): Number of channels of the recording (mono 1 or stereo 2). We use mono.
+            photo_administrator (PhotoAdministrator): Instance of PhotoAdministrator class. Is used as a manager for taking the burst of images.
+
     """
 
     def __init__(self, duration, sample_rate, device, channels = 1):
@@ -157,7 +166,12 @@ class FrequencyDetector():
         self.channels = channels
         self.photo_administrator = PhotoAdministrator()
 
-    def detect(self, frequency):
+    def detect(self, frequency, threshold = 50):
+        """Creates recording of duration second and the calculates the fourier transform -> if the difference between the wanted frequency es lower than threshold
+           then, take a burst of images with method photo_bust of PhotoAdministrator. Also the while loop is linked with the global variable break_program (change by the event of pressing esc key).
+           When this loop is break creates all the jpg files from the npy file that were not created before. 
+
+        """
         while (not break_program):
             my_recording = sd.rec(int(self.duration * self.sample_rate), samplerate=self.sample_rate, channels=self.channels, device=self.device)
             time.sleep(1.1*self.duration)
@@ -166,20 +180,22 @@ class FrequencyDetector():
             f_max_index = np.argmax(abs(fourier[:half_size]))
             freqs = np.fft.fftfreq(len(fourier))
             f_detected = freqs[f_max_index]*self.sample_rate
-            if (abs(f_detected - frequency) < 50):
+            if (abs(f_detected - frequency) < threshold):
                 print(f_detected)
                 print("detectado")
                 self.photo_administrator.photo_burst()      
         self.photo_administrator.create_all_jpg()      
 
 
+
+
 def on_press(key):
+    """Function made for waiting the event of pressing esc key
+    """
     global break_program
-    print (key)
     if key == keyboard.Key.esc:
         print ('end pressed')
         break_program = True
-        print(break_program)
         return False
 
 
