@@ -171,6 +171,12 @@ class FrequencyDetector():
            then, take a burst of images with method photo_bust of PhotoAdministrator. Also the while loop is linked with the global variable break_program (change by the event of pressing esc key).
            When this loop is break creates all the jpg files from the npy file that were not created before. 
 
+            Args:
+                frequency (float): Frequency to be detected
+                threshold (float): Maximum difference between frequencies to make a match
+
+            Returns:
+                Nothing      
         """
         while (not break_program):
             my_recording = sd.rec(int(self.duration * self.sample_rate), samplerate=self.sample_rate, channels=self.channels, device=self.device)
