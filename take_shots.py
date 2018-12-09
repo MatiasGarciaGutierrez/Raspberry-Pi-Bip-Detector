@@ -164,7 +164,7 @@ class FrequencyDetector():
         self.photo_administrator = PhotoAdministrator()
 
     def detect(self, frequency):
-        while is not break_program:
+        while (not break_program):
             my_recording = sd.rec(int(self.duration * self.sample_rate), samplerate=self.sample_rate, channels=self.channels, device=self.device)
             time.sleep(1.1*self.duration)
             fourier = np.fft.fft(my_recording.ravel())
@@ -189,7 +189,7 @@ break_program = False
 if __name__ == "__main__":
     with keyboard.Listener(on_press=on_press) as listener:
         frequency_detector = FrequencyDetector(0.05, 44100, 2)
-        while (is not break_program):
+        while (not break_program):
             frequency_detector.detect(1000)
         listener.join()
 
